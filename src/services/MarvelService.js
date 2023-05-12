@@ -32,7 +32,8 @@ class MarvelService {
             description: res.description,
             thumbnail: res.thumbnail.path + '.' + res.thumbnail.extension,
             homepage: res.urls[0].url,
-            wiki: res.urls[1].url
+            wiki: res.urls[1].url,
+            comics: res.comics.items
         }
     }
 

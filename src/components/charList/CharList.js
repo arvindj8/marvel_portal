@@ -35,13 +35,13 @@ class CharList extends Component {
         })
     }
 
-
-
     renderItems = (arr) => {
         const charItem = arr.map(char => {
             const styleImgChar = marvelService.checkImgNotFound(char.thumbnail, 'unset')
             return (
-                <li key={char.id} className="char__item">
+                <li key={char.id}
+                    onClick={() => this.props.onCharSelected(char.id)}
+                    className="char__item">
                     <img src={char.thumbnail} alt="abyss" style={styleImgChar}/>
                     <div className="char__name">{char.name}</div>
                 </li>
