@@ -11,12 +11,34 @@ class MarvelService {
         return await res.json()
     }
 
-    getCharactersAll = () => {
-        return this.getResource(`${this._prevApi}characters?limit=9&offset=200&${this._apiKey}`)
+    getCharactersAll = async () => {
+        const result = await this.getResource(
+            `${this._prevApi}characters?limit=9&offset=120&${this._apiKey}`
+        )
+        return result.data.results.map(this._transformCharacter)
     }
 
-    getCharacter = (id) => {
-        return this.getResource(`${this._prevApi}characters/${id}?${this._apiKey}`)
+    getCharacter = async (id) => {
+        const result = await this.getResource(
+            `${this._prevApi}characters/${id}?${this._apiKey}`
+        )
+        return this._transformCharacter(result.data.results[0])
+    }
+
+    _transformCharacter = (res) => {
+        return {
+            id: res.id,
+            name: res.name,
+            description: res.description,
+            thumbnail: res.thumbnail.path + '.' + res.thumbnail.extension,
+            homepage: res.urls[0].url,
+            wiki: res.urls[1].url
+        }
+    }
+
+    static checkImgNotFound = (thumbnail, objectfit) => {
+        const imgNotFound = 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg'
+        return thumbnail === imgNotFound ? {objectFit: objectfit} : null
     }
 }
 
