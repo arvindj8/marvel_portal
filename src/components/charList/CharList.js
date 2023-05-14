@@ -5,27 +5,53 @@ import './charList.scss';
 import Spinner from "../spinner/Spinner";
 import ErrorMessage from "../errorMessage/ErrorMessage";
 import marvelService from "../../services/MarvelService";
+import {CircularProgress} from "@mui/material";
 
 class CharList extends Component {
     state = {
         chars: [],
         loading: true,
-        error: false
+        error: false,
+        loadingNextChars: false,
+        offset: 210,
+        charEnded: false
     }
 
     marvelService = new MarvelService()
 
     componentDidMount() {
-        this.marvelService.getCharactersAll()
-            .then(chars => this._setChars(chars))
+        this.onRequest()
+    }
+
+    onRequest = (offset) => {
+        this.setState({
+            loadingNextChars: true
+        });
+
+        this.marvelService.getCharactersAll(offset)
+            .then(chars => this.onLoadedChar(chars))
             .catch(this.onErrorMessage)
     }
 
-    _setChars = (chars) => {
+    onLoadingChar = () => {
         this.setState({
-            chars,
-            loading: false
+            loadingNextChars: true
         })
+    }
+
+    onLoadedChar = (newChars) => {
+        let charEnded = false
+        if (newChars.length === 0) {
+            charEnded = true
+        }
+        this.onLoadingChar()
+        this.setState(({chars, offset}) => ({
+            chars: [...chars, ...newChars],
+            loading: false,
+            loadingNextChars: false,
+            offset: offset + 9,
+            charEnded: charEnded
+        }))
     }
 
     onErrorMessage = () => {
@@ -56,18 +82,29 @@ class CharList extends Component {
 
 
     render() {
-        const {chars, loading, error} = this.state
+        const {chars, loading, error, offset, loadingNextChars, charEnded} = this.state
         const items = this.renderItems(chars)
         const spinner = loading ? <Spinner/> : null
         const errorMessage = error ? <ErrorMessage/> : null
         const content = !(loading || error) ? items : null
+        const spinnerLoading = !loadingNextChars ? null : <CircularProgress style={
+            {
+                marginTop: "10px",
+                color: "red",
+                strokeWidth: "5"}
+        }/>
 
         return (
             <div className="char__list">
                 {content}
                 {spinner}
                 {errorMessage}
-                <button className="button button__main button__long">
+                {spinnerLoading}
+                <button
+                    className="button button__main button__long"
+                    disabled={loadingNextChars}
+                    onClick={() => this.onRequest(offset)}
+                    style={{display: charEnded ? "none" : "block"}}>
                     <div className="inner">load more</div>
                 </button>
             </div>

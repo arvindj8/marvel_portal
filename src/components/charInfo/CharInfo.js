@@ -1,7 +1,6 @@
 import {Component} from "react";
 
 import './charInfo.scss';
-import thor from '../../resources/img/thor.jpeg';
 import Skeleton from "../skeleton/Skeleton";
 import MarvelService from "../../services/MarvelService";
 import Spinner from "../spinner/Spinner";

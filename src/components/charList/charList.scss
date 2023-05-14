@@ -33,6 +33,13 @@
             transform: translateY(-8px);
         }
     }
+    &__list {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
     &__name {
         font-weight: bold;
         font-size: 22px;
