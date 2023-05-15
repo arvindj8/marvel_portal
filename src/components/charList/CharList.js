@@ -1,4 +1,4 @@
-import {Component} from "react";
+import React, {Component} from "react";
 
 import MarvelService from "../../services/MarvelService";
 import './charList.scss';
@@ -6,16 +6,23 @@ import Spinner from "../spinner/Spinner";
 import ErrorMessage from "../errorMessage/ErrorMessage";
 import marvelService from "../../services/MarvelService";
 import {CircularProgress} from "@mui/material";
+import PropTypes from "prop-types";
 
 class CharList extends Component {
-    state = {
-        chars: [],
-        loading: true,
-        error: false,
-        loadingNextChars: false,
-        offset: 210,
-        charEnded: false
+    constructor(props) {
+        super(props);
+        this.myRef = React.createRef()
+        this.state = {
+            chars: [],
+            loading: true,
+            error: false,
+            loadingNextChars: false,
+            offset: 210,
+            charEnded: false,
+            activeCharId: null
+        }
     }
+
 
     marvelService = new MarvelService()
 
@@ -44,6 +51,7 @@ class CharList extends Component {
         if (newChars.length === 0) {
             charEnded = true
         }
+
         this.onLoadingChar()
         this.setState(({chars, offset}) => ({
             chars: [...chars, ...newChars],
@@ -61,13 +69,29 @@ class CharList extends Component {
         })
     }
 
+    onFocus = (charId) => {
+        this.setState({
+            activeCharId: charId
+        })
+    }
+
+    onBlur = () => {
+        this.setState({
+            activeCharId: null,
+        });
+    };
+
     renderItems = (arr) => {
         const charItem = arr.map(char => {
             const styleImgChar = marvelService.checkImgNotFound(char.thumbnail, 'unset')
             return (
                 <li key={char.id}
                     onClick={() => this.props.onCharSelected(char.id)}
-                    className="char__item">
+                    className="char__item"
+                    ref={this.myRef}
+                    tabIndex={0}
+                    onFocus={() => this.onFocus(char.id)}
+                    onBlur={() => this.onBlur(char.id)}>
                     <img src={char.thumbnail} alt="abyss" style={styleImgChar}/>
                     <div className="char__name">{char.name}</div>
                 </li>
@@ -110,6 +134,10 @@ class CharList extends Component {
             </div>
         )
     }
+}
+
+CharList.prototypes = {
+    onCharSelected: PropTypes.func.isRequired
 }
 
 export default CharList;

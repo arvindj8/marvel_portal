@@ -6,6 +6,7 @@ import MarvelService from "../../services/MarvelService";
 import Spinner from "../spinner/Spinner";
 import ErrorMessage from "../errorMessage/ErrorMessage";
 import marvelService from "../../services/MarvelService";
+import PropTypes from "prop-types";
 
 class CharInfo extends Component {
     state = {
@@ -118,6 +119,10 @@ const CharView = ({char}) => {
             </ul>
         </>
     )
+}
+
+CharInfo.propTypes = {
+    charId: PropTypes.number
 }
 
 export default CharInfo;

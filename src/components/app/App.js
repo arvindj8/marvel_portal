@@ -8,9 +8,10 @@ import CharInfo from "../charInfo/CharInfo";
 import decoration from '../../resources/img/vision.png';
 import ErrorBoundary from "../errorBoundary/ErrorBoundary";
 
+
 class App extends Component {
     state = {
-        selectChar: 1009181
+        selectChar: 1011334
     }
 
     onCharSelected = (id) => {
