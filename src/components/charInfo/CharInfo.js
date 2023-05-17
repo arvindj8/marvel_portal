@@ -1,80 +1,46 @@
-import {Component} from "react";
+import {useEffect, useState} from "react";
 
 import './charInfo.scss';
 import Skeleton from "../skeleton/Skeleton";
-import MarvelService from "../../services/MarvelService";
+import useMarvelService, {checkImgNotFound} from "../../services/MarvelService";
 import Spinner from "../spinner/Spinner";
 import ErrorMessage from "../errorMessage/ErrorMessage";
-import marvelService from "../../services/MarvelService";
 import PropTypes from "prop-types";
 
-class CharInfo extends Component {
-    state = {
-        char: null,
-        loading: false,
-        error: false
-    }
+const CharInfo = (props) => {
+    const [char, setChar] = useState(null)
+    const {loading, error, getCharacter} = useMarvelService()
 
-    marvelService = new MarvelService()
 
-    componentDidMount() {
-        this.updateChar()
-    }
+    useEffect(() => updateChar(), [props.charId])
 
-    componentDidUpdate(prevProps) {
-        if (prevProps.charId !== this.props.charId) {
-            this.updateChar()
-        }
-    }
-
-    onLoadedChar = (char) => {
-        this.setState({
-            char,
-            loading: false
-        })
-    }
-
-    onCharLoading = () => {
-        this.setState({
-            loading: true
-        })
-    }
-
-    onErrorMessage = () => {
-        this.setState({
-            loading: false,
-            error: true
-        })
+    const onLoadedChar = (char) => {
+        setChar(char)
     }
 
 
-    updateChar = () => {
-        const {charId} = this.props
+    const updateChar = () => {
+        const {charId} = props
         if (!charId) {
             return
         }
-        this.onCharLoading()
-        this.marvelService.getCharacter(charId)
-            .then(this.onLoadedChar)
-            .catch(this.onErrorMessage)
+        getCharacter(charId)
+            .then(onLoadedChar)
     }
 
-    render() {
-        const {char, loading, error} = this.state
-        const skeleton = loading || error || char ? null : <Skeleton/>
-        const spinner = loading ? <Spinner/> : null
-        const errorMessage = error ? <ErrorMessage/> : null
-        const content = !(loading || error || !char ) ? <CharView char={char}/> : null
+    const skeleton = loading || error || char ? null : <Skeleton/>
+    const spinner = loading ? <Spinner/> : null
+    const errorMessage = error ? <ErrorMessage/> : null
+    const content = !(loading || error || !char ) ? <CharView char={char}/> : null
 
-        return (
-            <div className="char__info">
-                {skeleton}
-                {spinner}
-                {errorMessage}
-                {content}
-            </div>
-        )
-    }
+    return (
+        <div className="char__info">
+            {skeleton}
+            {spinner}
+            {errorMessage}
+            {content}
+        </div>
+    )
 }
 
 const CharView = ({char}) => {
@@ -90,13 +56,15 @@ const CharView = ({char}) => {
 
     })
 
-    const styleImgChar = marvelService.checkImgNotFound(thumbnail, 'contain')
+    const styleImgChar = checkImgNotFound(thumbnail, 'contain')
     const comicsNotFoundDescr = comics.length > 0 ? null : 'There is no comics this char'
 
     return (
         <>
             <div className="char__basics">
-                <img src={thumbnail} alt={name} style={styleImgChar}/>
+                <img src={thumbnail}
+                     style={styleImgChar}
+                     alt={name}/>
                 <div>
                     <div className="char__info-name">{name}</div>
                     <div className="char__btns">

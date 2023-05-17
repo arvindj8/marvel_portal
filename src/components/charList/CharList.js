@@ -1,102 +1,93 @@
-import React, {Component} from "react";
+import React, {useState, useEffect, useRef} from "react";
 
-import MarvelService from "../../services/MarvelService";
+import useMarvelService, {checkImgNotFound} from "../../services/MarvelService";
 import './charList.scss';
+
 import Spinner from "../spinner/Spinner";
 import ErrorMessage from "../errorMessage/ErrorMessage";
-import marvelService from "../../services/MarvelService";
 import {CircularProgress} from "@mui/material";
 import PropTypes from "prop-types";
 
-class CharList extends Component {
-    constructor(props) {
-        super(props);
-        this.myRef = React.createRef()
-        this.state = {
-            chars: [],
-            loading: true,
-            error: false,
-            loadingNextChars: false,
-            offset: 210,
-            charEnded: false,
-            activeCharId: null
-        }
+const CharList = (props) => {
+    const [chars, setChars] = useState([])
+    const [nextChars, setNextChars] = useState(false)
+    const [offset, setOffset] = useState(210)
+    const [charEnded, setCharEnded] = useState(false)
+    const [activeCharId, setActiveChar] = useState(null)
+
+    const {loading, error, getCharactersAll} = useMarvelService()
+
+
+
+
+    useEffect(() => {
+        onRequest(true)
+    }, [])
+
+    const onRequest = (offset, initial) => {
+        initial ? setNextChars(false) : setNextChars(true)
+
+
+        getCharactersAll(offset)
+            .then(chars => onLoadedChar(chars))
     }
 
 
-    marvelService = new MarvelService()
-
-    componentDidMount() {
-        this.onRequest()
-    }
-
-    onRequest = (offset) => {
-        this.setState({
-            loadingNextChars: true
-        });
-
-        this.marvelService.getCharactersAll(offset)
-            .then(chars => this.onLoadedChar(chars))
-            .catch(this.onErrorMessage)
-    }
-
-    onLoadingChar = () => {
-        this.setState({
-            loadingNextChars: true
-        })
-    }
-
-    onLoadedChar = (newChars) => {
+    const onLoadedChar = (newChars) => {
         let charEnded = false
         if (newChars.length === 0) {
             charEnded = true
         }
 
-        this.onLoadingChar()
-        this.setState(({chars, offset}) => ({
-            chars: [...chars, ...newChars],
-            loading: false,
-            loadingNextChars: false,
-            offset: offset + 9,
-            charEnded: charEnded
-        }))
+        setChars([...chars, ...newChars])
+        setNextChars(false)
+        setOffset(offset + 9)
+        setCharEnded(charEnded)
     }
 
-    onErrorMessage = () => {
-        this.setState({
-            loading: false,
-            error: true
-        })
+
+    const itemRef = useRef(null)
+
+    const onFocus = (charId) => {
+        setActiveChar(charId)
     }
 
-    onFocus = (charId) => {
-        this.setState({
-            activeCharId: charId
-        })
-    }
-
-    onBlur = () => {
-        this.setState({
-            activeCharId: null,
-        });
+    const onBlur = () => {
+        setActiveChar(null)
     };
 
-    renderItems = (arr) => {
+    const onKeyPress = (charId, event) => {
+        if (event.key === "Enter") {
+            if (activeCharId === charId) {
+                props.onCharSelected(charId);
+            } else {
+                onFocus(charId);
+            }
+        }
+
+    }
+
+    const renderItems = (arr) => {
         const charItem = arr.map(char => {
-            const styleImgChar = marvelService.checkImgNotFound(char.thumbnail, 'unset')
+            const styleImgChar = checkImgNotFound(char.thumbnail, 'unset')
             return (
                 <li key={char.id}
-                    onClick={() => this.props.onCharSelected(char.id)}
+                    onClick={() => props.onCharSelected(char.id)}
                     className="char__item"
-                    ref={this.myRef}
+                    ref={itemRef}
                     tabIndex={0}
-                    onFocus={() => this.onFocus(char.id)}
-                    onBlur={() => this.onBlur(char.id)}>
-                    <img src={char.thumbnail} alt="abyss" style={styleImgChar}/>
+                    onFocus={() => onFocus(char.id)}
+                    onBlur={onBlur}
+                    onKeyUp={(event) => onKeyPress(char.id, event)}
+                    >
+                    <img src={char.thumbnail}
+                         style={styleImgChar}
+                         alt="abyss"/>
                     <div className="char__name">{char.name}</div>
                 </li>
             )
         })
+
         return (
             <ul className="char__grid">
                 {charItem}
@@ -105,35 +96,32 @@ class CharList extends Component {
     }
 
 
-    render() {
-        const {chars, loading, error, offset, loadingNextChars, charEnded} = this.state
-        const items = this.renderItems(chars)
-        const spinner = loading ? <Spinner/> : null
-        const errorMessage = error ? <ErrorMessage/> : null
-        const content = !(loading || error) ? items : null
-        const spinnerLoading = !loadingNextChars ? null : <CircularProgress style={
-            {
-                marginTop: "10px",
-                color: "red",
-                strokeWidth: "5"}
-        }/>
+    const items = renderItems(chars)
+    const spinner = loading && !nextChars ? <Spinner/> : null
+    const errorMessage = error ? <ErrorMessage/> : null
+    const spinnerLoading = !nextChars ? null : <CircularProgress style={
+        {
+            marginTop: "10px",
+            color: "red",
+            strokeWidth: "5"}
+    }/>
 
-        return (
-            <div className="char__list">
-                {content}
-                {spinner}
-                {errorMessage}
-                {spinnerLoading}
-                <button
-                    className="button button__main button__long"
-                    disabled={loadingNextChars}
-                    onClick={() => this.onRequest(offset)}
-                    style={{display: charEnded ? "none" : "block"}}>
-                    <div className="inner">load more</div>
-                </button>
-            </div>
-        )
-    }
+    return (
+        <div className="char__list">
+            {items}
+            {spinner}
+            {errorMessage}
+            {spinnerLoading}
+            <button
+                className="button button__main button__long"
+                disabled={nextChars}
+                onClick={() => onRequest(offset)}
+                style={{display: charEnded ? "none" : "block"}}>
+                <div className="inner">load more</div>
+            </button>
+        </div>
+    )
+
 }
 
 CharList.prototypes = {

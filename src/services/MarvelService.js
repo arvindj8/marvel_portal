@@ -1,32 +1,27 @@
-class MarvelService {
-    _prevApi = 'https://gateway.marvel.com:443/v1/public/'
-    _apiKey = 'apikey=bad3fbcfe6024ed5edd8a80d58630018'
-    _baseOffset = 210
+import {useHttp} from "../hooks/http.hook";
 
+const useMarvelService = () => {
+    const {loading, request, error, clearError} = useHttp()
 
-    getResource = async (url) => {
-        const res = await fetch(url)
-        if (!res.ok) {
-            throw new Error(`Данные не получены, ошибка ${res.status}`)
-        }
-        return await res.json()
-    }
+    const _prevApi = 'https://gateway.marvel.com:443/v1/public/'
+    const _apiKey = 'apikey=bad3fbcfe6024ed5edd8a80d58630018'
+    const _baseOffset = 210
 
-    getCharactersAll = async (offset = this._baseOffset) => {
-        const result = await this.getResource(
-            `${this._prevApi}characters?limit=9&offset=${offset}&${this._apiKey}`
+    const getCharactersAll = async (offset = _baseOffset) => {
+        const result = await request(
+            `${_prevApi}characters?limit=9&offset=${offset}&${_apiKey}`
         )
-        return result.data.results.map(this._transformCharacter)
+        return result.data.results.map(_transformCharacter)
     }
 
-    getCharacter = async (id) => {
-        const result = await this.getResource(
-            `${this._prevApi}characters/${id}?${this._apiKey}`
+    const getCharacter = async (id) => {
+        const result = await request(
+            `${_prevApi}characters/${id}?${_apiKey}`
         )
-        return this._transformCharacter(result.data.results[0])
+        return _transformCharacter(result.data.results[0])
     }
 
-    _transformCharacter = (res) => {
+    const _transformCharacter = (res) => {
         return {
             id: res.id,
             name: res.name,
@@ -38,10 +33,42 @@ class MarvelService {
         }
     }
 
-    static checkImgNotFound = (thumbnail, objectfit) => {
-        const imgNotFound = 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg'
-        return thumbnail === imgNotFound ? {objectFit: objectfit} : null
+    const getComicsAll = async (offset= 0) => {
+        const result = await request(`${_prevApi}comics?orderBy=issueNumber&limit=8&offset=${offset}&${_apiKey}`)
+        return result.data.results.map(_transformComics)
     }
+
+
+    const _transformComics = (res) => {
+
+        return {
+            id: res.id,
+            title: res.title,
+            description: res.description || "There is no description",
+            pageCount: res.pageCount ? `${res.pageCount} p.` : "No information about the number of pages",
+            price: res.prices[0].price ? `${res.prices[0].price}$` : "not available",
+            thumbnail: res.thumbnail.path + '.' + res.thumbnail.extension,
+            language: res.textObjects[0]?.language || "en-us",
+            url: res.urls[0].url
+        }
+    }
+
+
+
+    return {
+        loading,
+        error,
+        getCharactersAll,
+        getCharacter,
+        clearError,
+        getComicsAll}
 }
 
-export default MarvelService
+
+const checkImgNotFound = (thumbnail, objectFit) => {
+    const imgNotFound = 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg'
+    return thumbnail === imgNotFound ? {objectFit: objectFit} : null
+}
+
+export default useMarvelService
+export {checkImgNotFound}
