@@ -7,7 +7,7 @@ import {useState} from "react";
 
 
 const MainPage = () => {
-    const [selectChar, setChar] = useState(1011334)
+    const [selectChar, setChar] = useState(null)
 
     const onCharSelected = (id) => {
         setChar(id)

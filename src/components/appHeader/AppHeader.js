@@ -14,7 +14,7 @@ const AppHeader = () => {
                 <ul>
                     <li><NavLink exact to={'/'}>Characters</NavLink></li>
                     /
-                    <li><NavLink exact to={'/comics'}>Comics</NavLink></li>
+                    <li><NavLink to={'/comics'}>Comics</NavLink></li>
                 </ul>
             </nav>
         </header>
