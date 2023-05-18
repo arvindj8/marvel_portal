@@ -1,6 +1,6 @@
 import './singleComic.scss';
 import {useEffect, useState} from "react";
-import {useParams} from "react-router-dom";
+import {Link, useParams} from "react-router-dom";
 
 import Spinner from "../../spinner/Spinner";
 import ErrorMessage from "../../errorMessage/ErrorMessage";
@@ -51,7 +51,7 @@ const View = ({comic}) => {
                 <p className="single-comic__descr">Language: {language}</p>
                 <div className="single-comic__price">{price}</div>
             </div>
-            <a href="src/components/pages#" className="single-comic__back">Back to all</a>
+            <Link to="/comic" className="single-comic__back">Back to all</Link>
         </div>
     )
 }
